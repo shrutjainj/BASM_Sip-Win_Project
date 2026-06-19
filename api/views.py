@@ -167,72 +167,9 @@ def redeem_coupon(request):
 # 🚀 ANALYTICS API
 @api_view(['GET'])
 def analytics(request):
-
-    total_qr = QRCode.objects.count()
-
-    total_coupons = Coupon.objects.count()
-
-    redeemed = Coupon.objects.filter(
-        is_used=True
-    ).count()
-
-    active = Coupon.objects.filter(
-        is_used=False
-    ).count()
-
-    redemption_rate = (
-        np.divide(redeemed, total_coupons) * 100
-        if total_coupons > 0
-        else 0
-    )
-
-    coupons = Coupon.objects.all().values(
-        "shop__name",
-        "is_used"
-    )
-
-    df = pd.DataFrame(coupons)
-
-    shop_ranking = []
-
-    if not df.empty:
-
-        shop_stats = (
-            df.groupby("shop__name")["is_used"]
-            .agg(["count", "sum"])
-            .reset_index()
-        )
-
-        shop_stats.columns = [
-            "shop",
-            "total_coupons",
-            "redeemed"
-        ]
-
-        shop_stats["active"] = (
-            shop_stats["total_coupons"]
-            - shop_stats["redeemed"]
-        )
-
-        shop_stats["redemption_rate"] = (
-            shop_stats["redeemed"]
-            / shop_stats["total_coupons"]
-            * 100
-        ).round(2)
-
-        shop_ranking = shop_stats.to_dict(
-            orient="records"
-        )
-
     return Response({
-        "total_qr": total_qr,
-        "total_coupons": total_coupons,
-        "redeemed": redeemed,
-        "active": active,
-        "redemption_rate": round(redemption_rate, 2),
-        "shop_ranking": shop_ranking
+        "status": "working"
     })
-
 @api_view(['GET'])
 def coupon_report(request):
     total = Coupon.objects.count()
