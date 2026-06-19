@@ -60,7 +60,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'config.urls'
 
-DEBUG = False
+DEBUG = True
 
 TEMPLATES = [
     {
