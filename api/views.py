@@ -5,7 +5,8 @@ from rest_framework.decorators import permission_classes
 
 from .models import QRCode, Shop, Coupon, Product
 import uuid
-
+import numpy as np
+import pandas as pd
 
 # 🚀 QR SCAN API
 @api_view(['POST'])
@@ -162,31 +163,88 @@ def redeem_coupon(request):
 @api_view(['GET'])
 def analytics(request):
 
-    # 🔹 Total QR
     total_qr = QRCode.objects.count()
 
-    # 🔹 Total Coupons
     total_coupons = Coupon.objects.count()
 
-    # 🔹 Redeemed coupons
     redeemed = Coupon.objects.filter(
         is_used=True
     ).count()
 
-    # 🔹 Active coupons
     active = Coupon.objects.filter(
         is_used=False
     ).count()
 
-    # 🔹 Final analytics
+    redemption_rate = (
+        np.divide(redeemed, total_coupons) * 100
+        if total_coupons > 0
+        else 0
+    )
+
+    coupons = Coupon.objects.all().values(
+        "shop__name",
+        "is_used"
+    )
+
+    df = pd.DataFrame(coupons)
+
+    shop_ranking = []
+
+    if not df.empty:
+
+        shop_stats = (
+            df.groupby("shop__name")["is_used"]
+            .agg(["count", "sum"])
+            .reset_index()
+        )
+
+        shop_stats.columns = [
+            "shop",
+            "total_coupons",
+            "redeemed"
+        ]
+
+        shop_stats["active"] = (
+            shop_stats["total_coupons"]
+            - shop_stats["redeemed"]
+        )
+
+        shop_stats["redemption_rate"] = (
+            shop_stats["redeemed"]
+            / shop_stats["total_coupons"]
+            * 100
+        ).round(2)
+
+        shop_ranking = shop_stats.to_dict(
+            orient="records"
+        )
+
     return Response({
-
         "total_qr": total_qr,
-
         "total_coupons": total_coupons,
-
         "redeemed": redeemed,
+        "active": active,
+        "redemption_rate": round(redemption_rate, 2),
+        "shop_ranking": shop_ranking
+    })
 
-        "active": active
+@api_view(['GET'])
+def coupon_report(request):
+    total = Coupon.objects.count()
 
+    redeemed = Coupon.objects.filter(
+        is_used = True
+    ).count()
+
+    active = Coupon.objects.filter(
+        is_used = False
+    ).count()
+
+    redemption_rate = (redeemed / total * 100 if total > 0 else 0)
+
+    return Response({
+        "total_coupons" : total,
+        "redeemed" : redeemed,
+        "active" : active,
+        "redemption_rate" : round(redemption_rate, 2)
     })
