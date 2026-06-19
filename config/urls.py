@@ -1,5 +1,5 @@
 from django.contrib import admin  # type: ignore[reportMissingModuleSource]
-from django.urls import path, include
+from django.urls import path, include  # type: ignore[reportMissingModuleSource]
 
 urlpatterns = [
 
