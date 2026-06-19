@@ -2,12 +2,17 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-
+from django.http import JsonResponse
 from .models import QRCode, Shop, Coupon, Product
 import uuid
 import numpy as np
 import pandas as pd
 
+@api_view(['GET'])
+def home(request):
+    return Response({
+        "message" : "JAI BOLO SHRI AADINATH BHAGWAAN KI JAI HO JAI JAI JAI"
+    })
 # 🚀 QR SCAN API
 @api_view(['POST'])
 def scan_qr(request):
